@@ -1,0 +1,16 @@
+# Contains KEYs and personal info
+config.py
+
+# Data retrieved through APIs
+/data
+
+# Libraries custom installed for the project
+/libraries
+
+# IDE folders
+/.idea
+
+# pyc
+*.pyc
+
+__pycache__
