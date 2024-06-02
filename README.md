@@ -57,7 +57,8 @@ Based on TA lib.
 
 TODO:
 
+- Use the top and bottom for FVG indicator to test the size of the FVG
 - FVG: Don't allow a buy signal if we are during bearish FVGs
 - Add new metrics like the number of good trades and the mean
   of result of good trades
-- Repo Git
+- Disable debug for matplotlib and PIL logger in tests, set info instead

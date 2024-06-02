@@ -69,12 +69,6 @@ class FVGBasedStrategy(TradingStrategy):
         stop_loss_price = None
         take_profit_price = None
 
-        # Bullish FVG (1)
-        # Take previous -1 high, and +1 low, this gives us the gap to be filled
-        # From this, if the -1 high is break, then BUY, otherwise do nothing
-        # Keep this support til we are still on the same uptrend
-        # If trend change -> reset everything
-
         bullish_fvg = []
 
         for index, row in signals[1:].iterrows():

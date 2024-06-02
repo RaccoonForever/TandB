@@ -28,6 +28,7 @@ class TestRSIStrategy(unittest.TestCase):
                                     take_profit=0.02,
                                     retention_period=10)
         signals = strategy.generate_signals()
+        strategy.plot_data_with_signals_v2()
 
         self.assertEqual(signals.loc[16, 'FVG'], 1.0)
         self.assertEqual(signals.loc[16, 'Signal'], 'Hold')

@@ -37,6 +37,8 @@ class TestFVGIndicator(unittest.TestCase):
         self.assertEqual(result.loc[16, 'FVG'], 1)
         self.assertTrue(np.isnan(result.loc[17, 'FVG']))
         self.assertTrue(np.isnan(result.loc[18, 'FVG']))
+        self.assertEqual(result.loc[16, 'Bottom'], 161.7)
+        self.assertEqual(result.loc[16, 'Top'], 164.6)
 
         self.assertTrue(result.loc[23, 'FVG'] == -1)
         self.assertTrue(np.isnan(result.loc[24, 'FVG']))
