@@ -1,38 +1,30 @@
 import numpy as np
 
-from core.evaluator import RSIEvaluator
+from core.evaluator import FVGEvaluator
 from config import init_logging
 
 init_logging()
 
-evaluator = RSIEvaluator(
+evaluator = FVGEvaluator(
     broker="XTB",
     symbol="SOP.FR_9",
-    period="1"
+    period="60",
+
 )
 
-# stop_loss_values = np.arange(0.01, 0.11, 0.01)
-# take_profit_values = np.arange(0.05, 0.51, 0.05)
-# rsi_window_values = np.arange(10, 21, 1)
-# overbought_threshold_values = np.arange(55, 90, 5)
-# oversold_threshold_values = np.arange(10, 45, 5)
-# Result: ????
-
-stop_loss_values = np.arange(0.01, 0.03, 0.01)
-take_profit_values = np.arange(0.05, 0.1, 0.05)
-rsi_window_values = np.arange(10, 11, 1)
-overbought_threshold_values = np.arange(55, 60, 5)
-oversold_threshold_values = np.arange(10, 15, 5)
+stop_loss_values = np.arange(0.01, 0.05, 0.01)
+take_profit_values = np.arange(0.01, 0.5, 0.02)
+retention_period_values = np.arange(6, 25, 2)
+FVG_min_size_values = np.arange(0.02, 0.2, 0.02)
 
 params = {
     'stop_loss_values': stop_loss_values,
     'take_profit_values': take_profit_values,
-    'rsi_window_values': rsi_window_values,
-    'overbought_threshold_values': overbought_threshold_values,
-    'oversold_threshold_values': oversold_threshold_values
+    'retention_period_values': retention_period_values,
+    'FVG_min_size_values': FVG_min_size_values
 }
 
-evaluator.grid_search(params, 2)
+evaluator.grid_search(params, 10)
 evaluator.save_results("./data/results/tmp.csv")
 
 # rsi = RSIBasedStrategy(data=SopraReader.getDataframe(), backtest_strategy_class=BacktestRSI, stop_loss=0.05,

@@ -41,7 +41,7 @@ class StrategyEvaluator(ABC):
         """
         filepath = f"data/{self.broker}/{self.symbol}_{self.period}.csv"
         reader = CsvReader(filepath)
-        return reader.getDataframe()
+        return reader.get_dataframe()
 
     @abstractmethod
     def evaluate_strategy(self, params):

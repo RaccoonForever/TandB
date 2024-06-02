@@ -44,7 +44,7 @@ class BacktestLong(Backtest):
         position_size = None
 
         # Iterate over each row in the signals DataFrame
-        for index, row in self.signals.iterrows():
+        for index, row in self.signals[:len(self.signals) - 2].iterrows():
             # print(row)
             # Calculate position size based on trade percentage of capital
             if position is None:
@@ -54,7 +54,7 @@ class BacktestLong(Backtest):
             if row['Signal'] == 'Buy' and position is None:
                 position = 'Long'
                 total_trades += 1
-                entry_price = self.data.loc[index + 1, 'open']  # Get the open price of the next tick as entry price
+                entry_price = self.signals.loc[index + 1, 'open']  # Get the open price of the next tick as entry price
                 self.entry_points[index + 1] = entry_price  # Store entry point
                 capital -= position_size  # Reduce capital for purchase
                 logger.debug(
@@ -64,7 +64,7 @@ class BacktestLong(Backtest):
             # If the signal is 'Sell' and a long position is currently held
             elif row['Signal'] == 'Sell' and position == 'Long':
                 position = None
-                exit_price = self.data.loc[index + 1, 'open']  # Get the open price of the next tick as exit price
+                exit_price = self.signals.loc[index + 1, 'open']  # Get the open price of the next tick as exit price
                 capital += (position_size * exit_price) / entry_price  # Increase capital for sale
                 self.exit_points[index + 1] = exit_price  # Store exit point
                 total_trades += 1
