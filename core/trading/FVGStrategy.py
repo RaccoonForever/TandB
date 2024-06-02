@@ -30,13 +30,17 @@ class FVGBasedStrategy(TradingStrategy):
         - take_profit (float or None): Take profit percentage (e.g., 0.1 for 10%) for exiting a winning trade.
         """
         super().__init__(data, backtest_strategy_class)
-        assert (not (merge_consecutive_fvg_start and merge_consecutive_fvg_end) and min_number_consecutive > 1)
+        assert (not (merge_consecutive_fvg_start and merge_consecutive_fvg_end) and min_number_consecutive > 1) or (
+                (merge_consecutive_fvg_start or merge_consecutive_fvg_end) and min_number_consecutive == 1
+        )
         self.stop_loss = stop_loss
         self.take_profit = take_profit
         self.merge_consecutive_fvg_start = merge_consecutive_fvg_start
         self.merge_consecutive_fvg_end = merge_consecutive_fvg_end
         self.retention_period = retention_period
         self.FVG_min_size = FVG_min_size
+        self.min_number_consecutive = min_number_consecutive
+        self.bullish_fvg = []
 
     def generate_signals(self):
         """
@@ -62,6 +66,7 @@ class FVGBasedStrategy(TradingStrategy):
         signals['low'] = data_index_int.loc[:, 'low']
         signals['Top'] = fvg_values_index_int['Top']
         signals['Bottom'] = fvg_values_index_int['Bottom']
+        signals['RankFVG'] = fvg_values_index_int['RankFVG']
 
         # Initialize the Signal column with "Hold"
         signals['Signal'] = 'Hold'
@@ -73,29 +78,20 @@ class FVGBasedStrategy(TradingStrategy):
         stop_loss_price = None
         take_profit_price = None
 
-        bullish_fvg = []
+        self.bullish_fvg = []
 
         for index, row in signals[1:].iterrows():
             # Clean FVG not anymore interesting
-            bullish_fvg = self._clean_list_by_retention(bullish_fvg, index)
+            self._clean_list(index, signals)
 
             if position == "out" and signals['FVG'][index] == 1:
                 logger.debug(f"Signal for date: {signals['date'][index]}")
-                previous_high = signals.loc[index - 1, 'high']
-                next_low = signals.loc[index + 1, 'low']
 
-                fvg_item = (index, previous_high, next_low)
-                fvg_size = (signals['Top'][index] - signals['Bottom'][index]) * 100 / signals.loc[index, 'close']
-                logger.debug(f"Top: {signals['Top'][index]}, Bottom: {signals['Bottom'][index]}")
-                logger.debug(f"FVG Signal is of size: {fvg_size}")
-                if fvg_size > self.FVG_min_size:
-                    bullish_fvg.append(fvg_item)
-                    logger.debug(f"Adding new FVG entry: {(index, previous_high, next_low)}")
-                else:
-                    logger.debug(f"FVG Signal is {fvg_size} <= {self.FVG_min_size}")
+                if self._is_FVG_relevant(row):
+                    self._append_to_bullish_fvg_list(index, signals)
 
-            elif position == "out" and len(bullish_fvg) > 0:
-                for bullish in bullish_fvg:
+            elif position == "out" and len(self.bullish_fvg) > 0:
+                for bullish in self.bullish_fvg:
                     # Loop over current FVG still in list
                     if signals.loc[index, 'close'] < bullish[2]:
                         signals.loc[index, 'Signal'] = 'Buy'
@@ -105,7 +101,7 @@ class FVGBasedStrategy(TradingStrategy):
                         take_profit_price = signals.loc[index, 'close'] * (1 + self.take_profit)
                         signals.loc[index, 'SL'] = stop_loss_price
                         signals.loc[index, 'TP'] = take_profit_price
-                        bullish_fvg.remove(bullish)
+                        self.bullish_fvg.remove(bullish)
                         break
             elif position == "in":
                 if signals.loc[index, 'close'] <= stop_loss_price:
@@ -119,13 +115,54 @@ class FVGBasedStrategy(TradingStrategy):
 
         return signals
 
-    def _clean_list_by_retention(self, l, current_index):
-        for i in l:
-            if i[0] + self.retention_period < current_index:
-                logger.debug(f"Clearing item from the list: {i}")
-                l.remove(i)
+    def _append_to_bullish_fvg_list(self, index, signals):
+        """
 
-        return l
+        :param index:
+        :param signals:
+        :return:
+        """
+        if signals['RankFVG'][index] == self.min_number_consecutive:
+            fvg_item = (index, signals['Bottom'][index - 1], signals['Top'][index - 1])
+            self.bullish_fvg.append(fvg_item)
+            logger.debug(
+                f"Adding new FVG entry: {(index - 1, signals['Bottom'][index - 1], signals['Top'][index - 1])}")
+        else:
+            logger.debug(f"FVG has already been added to the list.")
+
+    def _is_FVG_relevant(self, row):
+        """
+
+        :param row:
+        :return:
+        """
+        fvg_size = (row.Top - row.Bottom) * 100 / row.close
+        logger.debug(f"FVG Signal is of size: {fvg_size}")
+        if not (fvg_size > self.FVG_min_size):
+            logger.debug(f"FVG Signal is {fvg_size} <= {self.FVG_min_size}")
+            return False
+
+        # Check rank
+        if row.RankFVG < self.min_number_consecutive:
+            logger.debug(f"FVG Signal is of rank {row.RankFVG} < {self.min_number_consecutive}")
+            return False
+
+        return True
+
+    def _clean_list(self, current_index, signals):
+        """
+        Clean list depending on the following:
+            - Retention period
+            - Does the FVG signal have more than X consecutive FVGs
+        :param l:
+        :param current_index:
+        :return:
+        """
+        for i in self.bullish_fvg:
+            if i[0] + self.retention_period < current_index:
+                logger.debug(f"Clearing item from the list: {i} because of the retention period.")
+                self.bullish_fvg.remove(i)
+                continue
 
     def run_backtest(self):
         """

@@ -59,11 +59,13 @@ class TestRSIStrategy(unittest.TestCase):
         data = pd.read_csv("data/data_fvg_values_2.csv", index_col=0, parse_dates=True)
 
         strategy = FVGBasedStrategy(data=data, backtest_strategy_class=BacktestLong,
-                                    merge_consecutive_fvg_start=True,
+                                    merge_consecutive_fvg_start=False,
+                                    merge_consecutive_fvg_end=False,
+                                    min_number_consecutive=2,
                                     stop_loss=0.01,
                                     take_profit=0.02,
                                     retention_period=10,
                                     FVG_min_size=0.1)
         signals = strategy.generate_signals()
-        print(signals[['date', 'FVG', 'close', 'Cause', 'SL', 'TP', 'Signal']])
+        print(signals[['date', 'FVG', 'Cause', 'Signal', 'RankFVG', 'Top', 'Bottom']])
         strategy.plot_data_with_signals_v2()

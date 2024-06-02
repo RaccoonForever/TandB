@@ -16,13 +16,15 @@ reader = CsvReader("data/XTB/SOP.FR_9_60.csv")
 # rsi.plot_backtest_with_signals()
 
 fvg = FVGBasedStrategy(data=reader.get_dataframe().head(154), backtest_strategy_class=BacktestLong,
-                       merge_consecutive_fvg_start=True,
-                       stop_loss=0.01,
+                       merge_consecutive_fvg_start=False,
+                       merge_consecutive_fvg_end=False,
+                       min_number_consecutive=2,
+                       stop_loss=0.02,
                        take_profit=0.02,
-                       retention_period=20
+                       retention_period=15,
+                       FVG_min_size=0.1
                        )
 # fvg.run_backtest()
 print(fvg.generate_signals())
 
 fvg.plot_data_with_signals_v2()
-
