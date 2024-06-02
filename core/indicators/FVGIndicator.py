@@ -82,4 +82,15 @@ class FVGIndicator(Indicator):
                                Bottom=bottom,
                                MitigatedIndex=mitigated_index)
 
+        new_df = self._rank_FVG(new_df)
+
         return new_df
+
+    def _rank_FVG(self, df):
+        df['FVG_temp'] = np.where(np.isnan(df['FVG']), 0, 1)
+
+        df['GroupId'] = df['FVG_temp'].eq(0).cumsum()
+        df['RankFVG'] = df.groupby('GroupId')['FVG_temp'].transform('cumsum')
+
+        df = df.drop(columns=['GroupId', 'FVG_temp'])
+        return df

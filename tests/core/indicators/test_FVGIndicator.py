@@ -26,6 +26,13 @@ class TestFVGIndicator(unittest.TestCase):
 
         self.assertTrue((result.loc[16:18, 'FVG'] == 1).all())
         self.assertTrue((result.loc[23:25, 'FVG'] == -1).all())
+        self.assertTrue(result.loc[16, 'RankFVG'] == 1)
+        self.assertTrue(result.loc[17, 'RankFVG'] == 2)
+        self.assertTrue(result.loc[18, 'RankFVG'] == 3)
+
+        self.assertTrue(result.loc[23, 'RankFVG'] == 1)
+        self.assertTrue(result.loc[24, 'RankFVG'] == 2)
+        self.assertTrue(result.loc[25, 'RankFVG'] == 3)
 
     def test_calculate_with_basic_values_and_merge_start(self):
         data = pd.read_csv("data/data_fvg_values.csv")

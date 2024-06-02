@@ -15,6 +15,7 @@ class FVGBasedStrategy(TradingStrategy):
                  merge_consecutive_fvg_end=False,
                  retention_period=100,
                  FVG_min_size=0.1,
+                 min_number_consecutive=1,
                  stop_loss=None, take_profit=None):
         """
         Initialize the trading strategy with historical market data and FVG parameters.
@@ -29,6 +30,7 @@ class FVGBasedStrategy(TradingStrategy):
         - take_profit (float or None): Take profit percentage (e.g., 0.1 for 10%) for exiting a winning trade.
         """
         super().__init__(data, backtest_strategy_class)
+        assert (not (merge_consecutive_fvg_start and merge_consecutive_fvg_end) and min_number_consecutive > 1)
         self.stop_loss = stop_loss
         self.take_profit = take_profit
         self.merge_consecutive_fvg_start = merge_consecutive_fvg_start
@@ -58,6 +60,8 @@ class FVGBasedStrategy(TradingStrategy):
         signals['close'] = data_index_int.loc[:, 'close']
         signals['high'] = data_index_int.loc[:, 'high']
         signals['low'] = data_index_int.loc[:, 'low']
+        signals['Top'] = fvg_values_index_int['Top']
+        signals['Bottom'] = fvg_values_index_int['Bottom']
 
         # Initialize the Signal column with "Hold"
         signals['Signal'] = 'Hold'
@@ -76,11 +80,14 @@ class FVGBasedStrategy(TradingStrategy):
             bullish_fvg = self._clean_list_by_retention(bullish_fvg, index)
 
             if position == "out" and signals['FVG'][index] == 1:
+                logger.debug(f"Signal for date: {signals['date'][index]}")
                 previous_high = signals.loc[index - 1, 'high']
                 next_low = signals.loc[index + 1, 'low']
 
                 fvg_item = (index, previous_high, next_low)
-                fvg_size = (next_low - previous_high) * 100 / signals.loc[index, 'close']
+                fvg_size = (signals['Top'][index] - signals['Bottom'][index]) * 100 / signals.loc[index, 'close']
+                logger.debug(f"Top: {signals['Top'][index]}, Bottom: {signals['Bottom'][index]}")
+                logger.debug(f"FVG Signal is of size: {fvg_size}")
                 if fvg_size > self.FVG_min_size:
                     bullish_fvg.append(fvg_item)
                     logger.debug(f"Adding new FVG entry: {(index, previous_high, next_low)}")
