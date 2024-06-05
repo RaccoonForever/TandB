@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class StrategyEvaluator(ABC):
+    result_path = "data/results/result.csv"
 
     def __init__(self, broker, symbol, period):
         """
@@ -67,7 +68,10 @@ class StrategyEvaluator(ABC):
         """
         pass
 
-    def save_results(self, filename):
+    def print_results(self):
+        print(self.result)
+
+    def save_results(self):
         """
         Saves the grid search results to a CSV file.
 
@@ -82,14 +86,15 @@ class StrategyEvaluator(ABC):
 
         version_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        with open(filename, mode='w', newline='') as file:
+        with open(self.result_path, mode='w', newline='') as file:
             writer = csv.writer(file)
             # Write the header
             writer.writerow(
-                ['Strategy', 'Broker', 'Symbol', 'Period', 'Profit', 'Performance Metrics', 'Parameters', 'Version'])
+                ['Strategy', 'Strategy Version', 'Broker', 'Symbol', 'Period', 'Profit', 'Performance Metrics',
+                 'Parameters', 'Version'])
 
             # Write the data
             for result in self.result:
-                class_name, profit, performance_metrics, parameters = result
-                writer.writerow([class_name, self.broker, self.symbol, self.period,
+                class_name, version, profit, performance_metrics, parameters = result
+                writer.writerow([class_name, version, self.broker, self.symbol, self.period,
                                  profit, performance_metrics, parameters, version_timestamp])

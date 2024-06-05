@@ -57,6 +57,7 @@ Based on TA lib.
 
 TODO:
 
+- Merge results instead of overwriting it
 - FVG: Don't allow a buy signal if we are during bearish FVGs
 - Add new metrics like the number of good trades and the mean
   of result of good trades

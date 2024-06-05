@@ -40,6 +40,8 @@ class FVGEvaluator(StrategyEvaluator):
         take_profit_values = params['take_profit_values']
         retention_period_values = params['retention_period_values']
         FVG_min_size_values = params['FVG_min_size_values']
+        merge_consecutive_fvg_start_values = params['merge_consecutive_fvg_start_values']
+        breaking_support_trigger_values = params['breaking_support_trigger_values']
 
         # Initialize a list to store the top N performances and their parameters
         top_performances = []
@@ -48,22 +50,27 @@ class FVGEvaluator(StrategyEvaluator):
             for take_profit in take_profit_values:
                 for retention_period in retention_period_values:
                     for min_size in FVG_min_size_values:
-                        current_params = {
-                            "stop_loss": stop_loss,
-                            "take_profit": take_profit,
-                            "retention_period": retention_period,
-                            "FVG_min_size": min_size
-                        }
-                        performances = self.evaluate_strategy(current_params)
-                        profit = performances['Total Profit']
+                        for merge_consecutive_fvg_start in merge_consecutive_fvg_start_values:
+                            for breaking_support_trigger in breaking_support_trigger_values:
+                                current_params = {
+                                    "stop_loss": stop_loss,
+                                    "take_profit": take_profit,
+                                    "retention_period": retention_period,
+                                    "FVG_min_size": min_size,
+                                    "merge_consecutive_fvg_start": merge_consecutive_fvg_start,
+                                    "breaking_support_trigger": breaking_support_trigger
+                                }
+                                performances = self.evaluate_strategy(current_params)
+                                profit = performances['Total Profit']
 
-                        # Add the current performance and parameters to the list
-                        top_performances.append(
-                            (FVGBasedStrategy.__name__, profit, performances, current_params))
-                        # Sort the list by performance in descending order
-                        top_performances.sort(key=lambda x: x[1], reverse=True)
-                        # Keep only the top N performances
-                        top_performances = top_performances[:top_n]
+                                # Add the current performance and parameters to the list
+                                top_performances.append(
+                                    (FVGBasedStrategy.__name__, FVGBasedStrategy.__version__, profit, performances,
+                                     current_params))
+                                # Sort the list by performance in descending order
+                                top_performances.sort(key=lambda x: x[2], reverse=True)
+                                # Keep only the top N performances
+                                top_performances = top_performances[:top_n]
 
         self.result = top_performances
         return top_performances
@@ -73,14 +80,17 @@ class FVGEvaluator(StrategyEvaluator):
         take_profit = params['take_profit']
         retention_period = params['retention_period']
         FVG_min_size = params['FVG_min_size']
+        merge_consecutive_fvg_start = params['merge_consecutive_fvg_start']
+        breaking_support_trigger = params['breaking_support_trigger']
 
         logger.info(f"Evaluating FVGBased Strategy with parameters: {params}")
 
         strategy = FVGBasedStrategy(data=self.data, backtest_strategy_class=BacktestFVG,
-                                    merge_consecutive_fvg_start=False,
+                                    merge_consecutive_fvg_start=merge_consecutive_fvg_start,
                                     merge_consecutive_fvg_end=False,
                                     retention_period=retention_period,
                                     FVG_min_size=FVG_min_size,
                                     min_number_consecutive=2,
+                                    breaking_support_trigger=breaking_support_trigger,
                                     stop_loss=stop_loss, take_profit=take_profit)
         return strategy.run_backtest()
