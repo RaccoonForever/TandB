@@ -14,8 +14,8 @@ evaluator = FVGEvaluator(
 
 stop_loss_values = np.arange(0.01, 0.05, 0.01)
 take_profit_values = np.arange(0.01, 0.5, 0.02)
-retention_period_values = np.arange(6, 25, 2)
-FVG_min_size_values = np.arange(0.02, 0.2, 0.02)
+retention_period_values = np.arange(16, 26, 2)
+FVG_min_size_values = np.arange(0.04, 0.1, 0.02)
 merge_consecutive_fvg_start_values = [False]
 breaking_support_trigger_values = ["Top", "Bottom"]
 

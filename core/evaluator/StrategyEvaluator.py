@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 class StrategyEvaluator(ABC):
     result_path = "data/results/result.csv"
+    temp_result_path = "data/results/tmp.csv"
 
     def __init__(self, broker, symbol, period):
         """
@@ -85,13 +86,23 @@ class StrategyEvaluator(ABC):
             return
 
         version_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        header = ['Strategy', 'Strategy Version', 'Broker', 'Symbol', 'Period', 'Profit', 'Performance Metrics',
+                  'Parameters', 'Version']
 
-        with open(self.result_path, mode='w', newline='') as file:
+        with open(self.temp_result_path, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(header)
+
+            # Write the data
+            for result in self.result:
+                class_name, version, profit, performance_metrics, parameters = result
+                writer.writerow([class_name, version, self.broker, self.symbol, self.period,
+                                 profit, performance_metrics, parameters, version_timestamp])
+
+        with open(self.result_path, mode='a', newline='') as file:
             writer = csv.writer(file)
             # Write the header
-            writer.writerow(
-                ['Strategy', 'Strategy Version', 'Broker', 'Symbol', 'Period', 'Profit', 'Performance Metrics',
-                 'Parameters', 'Version'])
+            writer.writerow(header)
 
             # Write the data
             for result in self.result:

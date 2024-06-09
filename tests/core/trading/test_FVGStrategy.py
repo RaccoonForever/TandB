@@ -10,6 +10,8 @@ class TestRSIStrategy(unittest.TestCase):
     def setUp(self):
         logging.basicConfig(level=logging.DEBUG)
         logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger("matplotlib").setLevel(logging.WARNING)
+        logging.getLogger("PIL").setLevel(logging.WARNING)
 
     def test_generateSignals_with_constant_values(self):
         data = pd.read_csv("data/data_constant_values.csv")

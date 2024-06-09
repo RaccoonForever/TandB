@@ -57,7 +57,9 @@ Based on TA lib.
 
 TODO:
 
-- Merge results instead of overwriting it
+- Write the results in two files, one in overwrite to see what's happening
+  and in append in the big one
+- Add new performance metrics: % of return total, % of return annually
 - FVG: Don't allow a buy signal if we are during bearish FVGs
 - Add new metrics like the number of good trades and the mean
   of result of good trades
